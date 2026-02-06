@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Madness Bracket</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f1f5f9;
+        }
+
+        .stage-container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .movie-card {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .movie-card:hover:not(.selected) {
+            transform: translateY(-2px);
+            border-color: #38bdf8;
+            background-color: #1e293b;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .progress-bar {
+            transition: width 0.4s ease-in-out;
+        }
+
+        /* Prevent IMDB button from triggering movie selection */
+        .imdb-link {
+            transition: all 0.2s;
+            z-index: 50;
+        }
+        .imdb-link:hover {
+            background-color: #f59e0b;
+            color: #000;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+    <div id="app" class="max-w-2xl mx-auto">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-5xl font-extrabold mb-2 bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
+                MOVIE MADNESS
+            </h1>
+            <div id="round-indicator" class="text-slate-400 font-medium uppercase tracking-widest text-sm">
+                Round of 32
+            </div>
+        </header>
+
+        <!-- Progress Tracking -->
+        <div class="mb-6">
+            <div class="flex justify-between text-xs text-slate-500 mb-2 px-1">
+                <span id="match-counter">Match 1 of 16</span>
+                <span id="round-percent">0%</span>
+            </div>
+            <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden mb-4">
+                <div id="progress-fill" class="progress-bar bg-blue-500 h-full w-0"></div>
+            </div>
+            <div class="text-center text-lg font-semibold text-slate-300 italic">
+                Which movie would you rather watch?
+            </div>
+        </div>
+
+        <!-- Voting Area -->
+        <div id="voting-stage" class="stage-container space-y-8">
+            <div id="matchup" class="fade-in">
+                <!-- Matchup buttons will be injected here -->
+            </div>
+        </div>
+
+        <!-- Winner View -->
+        <div id="winner-view" class="hidden text-center fade-in py-12">
+            <div class="text-yellow-500 font-bold mb-4 uppercase tracking-[0.3em] text-sm">The Ultimate Choice</div>
+            <div id="champion-name" class="inline-block bg-gradient-to-br from-yellow-400 via-amber-500 to-orange-600 p-10 rounded-3xl text-slate-950 font-black text-3xl shadow-2xl mb-8">
+                ?
+            </div>
+            <div>
+                <button onclick="initGame()" class="bg-slate-800 hover:bg-slate-700 text-white px-8 py-3 rounded-full font-bold border border-slate-700 transition-all active:scale-95">
+                    Start New Tournament
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data expanded to include IMDB links from the Google Sheet
+        const MOVIE_DATA = [
+            { title: "Gone With The Wind", year: "1939", imdb: "https://www.imdb.com/title/tt0031381/" },
+            { title: "Casablanca", year: "1942", imdb: "https://www.imdb.com/title/tt0034583/" },
+            { title: "Dial M for Murder", year: "1954", imdb: "https://www.imdb.com/title/tt0046912/" },
+            { title: "Guys and Dolls", year: "1955", imdb: "https://www.imdb.com/title/tt0048140/" },
+            { title: "Ben Hur", year: "1959", imdb: "https://www.imdb.com/title/tt0052618/" },
+            { title: "Psycho", year: "1960", imdb: "https://www.imdb.com/title/tt0054215/" },
+            { title: "Lawrence of Arabia", year: "1962", imdb: "https://www.imdb.com/title/tt0056172/" },
+            { title: "The Sting", year: "1973", imdb: "https://www.imdb.com/title/tt0070735/" },
+            { title: "Footloose", year: "1984", imdb: "https://www.imdb.com/title/tt0087277/" },
+            { title: "Clue", year: "1985", imdb: "https://www.imdb.com/title/tt0088930/" },
+            { title: "Top Gun", year: "1986", imdb: "https://www.imdb.com/title/tt0092099/" },
+            { title: "Weekend at Bernie's", year: "1989", imdb: "https://www.imdb.com/title/tt0098627/" },
+            { title: "The Bodyguard", year: "1992", imdb: "https://www.imdb.com/title/tt0103855/" },
+            { title: "In the Line of Fire", year: "1993", imdb: "https://www.imdb.com/title/tt0107206/" },
+            { title: "The Firm", year: "1993", imdb: "https://www.imdb.com/title/tt0106918/" },
+            { title: "The Fugitive", year: "1993", imdb: "https://www.imdb.com/title/tt0106977/" },
+            { title: "The Pelican Brief", year: "1993", imdb: "https://www.imdb.com/title/tt0107798/" },
+            { title: "Apollo 13", year: "1995", imdb: "https://www.imdb.com/title/tt0112384/" },
+            { title: "Braveheart", year: "1995", imdb: "https://www.imdb.com/title/tt0112573/" },
+            { title: "Tommy Boy", year: "1995", imdb: "https://www.imdb.com/title/tt0114694/" },
+            { title: "Fear", year: "1996", imdb: "https://www.imdb.com/title/tt0116287/" },
+            { title: "Jerry Maguire", year: "1996", imdb: "https://www.imdb.com/title/tt0116695/" },
+            { title: "Romeo + Juliet", year: "1996", imdb: "https://www.imdb.com/title/tt0117509/" },
+            { title: "Air Force One", year: "1997", imdb: "https://www.imdb.com/title/tt0118570/" },
+            { title: "Titanic", year: "1997", imdb: "https://www.imdb.com/title/tt0120338/" },
+            { title: "The Mask of Zorro", year: "1998", imdb: "https://www.imdb.com/title/tt0120747/" },
+            { title: "Meet Joe Black", year: "1998", imdb: "https://www.imdb.com/title/tt0120755/" },
+            { title: "A Perfect Murder", year: "1998", imdb: "https://www.imdb.com/title/tt0120787/" },
+            { title: "Charlie's Angels", year: "2000", imdb: "https://www.imdb.com/title/tt0160126/" },
+            { title: "What Lies Beneath", year: "2000", imdb: "https://www.imdb.com/title/tt0161081/" },
+            { title: "Moulin Rouge!", year: "2001", imdb: "https://www.imdb.com/title/tt0203009/" },
+            { title: "Chicago", year: "2002", imdb: "https://www.imdb.com/title/tt0299658/" },
+            { title: "Drumline", year: "2002", imdb: "https://www.imdb.com/title/tt0303933/" },
+            { title: "Sweet Home Alabama", year: "2002", imdb: "https://www.imdb.com/title/tt0256415/" },
+            { title: "The Pianist", year: "2002", imdb: "https://www.imdb.com/title/tt0253474/" },
+            { title: "13 Going on 30", year: "2004", imdb: "https://www.imdb.com/title/tt0337563/" },
+            { title: "Pride & Prejudice", year: "2005", imdb: "https://www.imdb.com/title/tt0414387/" },
+            { title: "Blood Diamond", year: "2006", imdb: "https://www.imdb.com/title/tt0450594/" },
+            { title: "Body of Lies", year: "2008", imdb: "https://www.imdb.com/title/tt0758774/" },
+            { title: "The Proposal", year: "2009", imdb: "https://www.imdb.com/title/tt1132470/" },
+            { title: "Green Zone", year: "2010", imdb: "https://www.imdb.com/title/tt0947810/" },
+            { title: "Knight and Day", year: "2010", imdb: "https://www.imdb.com/title/tt1013743/" },
+            { title: "Argo", year: "2012", imdb: "https://www.imdb.com/title/tt1024648/" },
+            { title: "Lawless", year: "2012", imdb: "https://www.imdb.com/title/tt1212450/" },
+            { title: "Captain Phillips", year: "2013", imdb: "https://www.imdb.com/title/tt1535109/" },
+            { title: "Now You See Me", year: "2013", imdb: "https://www.imdb.com/title/tt1670345/" },
+            { title: "Olympus Has Fallen", year: "2013", imdb: "https://www.imdb.com/title/tt2302755/" },
+            { title: "Keeping Up with the Joneses", year: "2016", imdb: "https://www.imdb.com/title/tt2387499/" },
+            { title: "Passengers", year: "2016", imdb: "https://www.imdb.com/title/tt1355644/" },
+            { title: "Ocean's Eight", year: "2018", imdb: "https://www.imdb.com/title/tt5074352/" }
+        ];
+
+        let state = {
+            currentRound: [],     
+            winnersOfRound: [],   
+            matchIndex: 0,        
+            roundNames: {
+                32: "Round of 32",
+                16: "Round of 16",
+                8: "Quarter-finals",
+                4: "Semi-finals",
+                2: "The Finals"
+            }
+        };
+
+        function shuffle(array) {
+            const newArr = [...array];
+            for (let i = newArr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+            }
+            return newArr;
+        }
+
+        function initGame() {
+            const shuffled = shuffle(MOVIE_DATA);
+            state.currentRound = shuffled.slice(0, 32);
+            state.winnersOfRound = [];
+            state.matchIndex = 0;
+
+            document.getElementById('winner-view').classList.add('hidden');
+            document.getElementById('voting-stage').classList.remove('hidden');
+            
+            renderMatch();
+        }
+
+        function renderMatch() {
+            const matchupDiv = document.getElementById('matchup');
+            const roundIndicator = document.getElementById('round-indicator');
+            const matchCounter = document.getElementById('match-counter');
+            const progressFill = document.getElementById('progress-fill');
+            const roundPercent = document.getElementById('round-percent');
+
+            roundIndicator.innerText = state.roundNames[state.currentRound.length] || "Tournament";
+
+            const totalMatchesInRound = state.currentRound.length / 2;
+            const currentMatchDisplay = state.matchIndex + 1;
+            matchCounter.innerText = `Match ${currentMatchDisplay} of ${totalMatchesInRound}`;
+            
+            const progress = (state.matchIndex / totalMatchesInRound) * 100;
+            progressFill.style.width = `${progress}%`;
+            roundPercent.innerText = `${Math.round(progress)}%`;
+
+            const movie1 = state.currentRound[state.matchIndex * 2];
+            const movie2 = state.currentRound[state.matchIndex * 2 + 1];
+
+            matchupDiv.innerHTML = `
+                <div class="flex flex-col gap-4">
+                    <div class="relative group">
+                        <button id="btn-choice-1" class="movie-card w-full p-6 pb-14 rounded-2xl border-2 border-slate-700 bg-slate-800/50 flex flex-col items-center justify-center text-center min-h-[160px]">
+                            <span class="font-extrabold text-xl">${movie1.title}</span>
+                            <span class="font-normal text-base text-slate-400 mt-1">${movie1.year}</span>
+                        </button>
+                        <a href="${movie1.imdb}" target="_blank" class="imdb-link absolute bottom-4 left-1/2 -translate-x-1/2 px-5 py-2 bg-slate-700 text-xs font-black rounded-lg text-slate-100 uppercase tracking-wide border border-slate-500 hover:border-amber-500 hover:bg-amber-600 hover:text-black shadow-lg">
+                            IMDB
+                        </a>
+                    </div>
+
+                    <div class="text-center text-slate-600 font-black italic tracking-widest py-1">VS</div>
+
+                    <div class="relative group">
+                        <button id="btn-choice-2" class="movie-card w-full p-6 pb-14 rounded-2xl border-2 border-slate-700 bg-slate-800/50 flex flex-col items-center justify-center text-center min-h-[160px]">
+                            <span class="font-extrabold text-xl">${movie2.title}</span>
+                            <span class="font-normal text-base text-slate-400 mt-1">${movie2.year}</span>
+                        </button>
+                        <a href="${movie2.imdb}" target="_blank" class="imdb-link absolute bottom-4 left-1/2 -translate-x-1/2 px-5 py-2 bg-slate-700 text-xs font-black rounded-lg text-slate-100 uppercase tracking-wide border border-slate-500 hover:border-amber-500 hover:bg-amber-600 hover:text-black shadow-lg">
+                            IMDB
+                        </a>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('btn-choice-1').onclick = () => vote(movie1);
+            document.getElementById('btn-choice-2').onclick = () => vote(movie2);
+            
+            matchupDiv.classList.remove('fade-in');
+            void matchupDiv.offsetWidth; 
+            matchupDiv.classList.add('fade-in');
+        }
+
+        function vote(movieObj) {
+            state.winnersOfRound.push(movieObj);
+            state.matchIndex++;
+
+            if (state.matchIndex >= state.currentRound.length / 2) {
+                if (state.winnersOfRound.length === 1) {
+                    showWinner(state.winnersOfRound[0]);
+                } else {
+                    state.currentRound = [...state.winnersOfRound];
+                    state.winnersOfRound = [];
+                    state.matchIndex = 0;
+                    setTimeout(renderMatch, 300);
+                }
+            } else {
+                renderMatch();
+            }
+        }
+
+        function showWinner(winnerObj) {
+            document.getElementById('voting-stage').classList.add('hidden');
+            document.getElementById('winner-view').classList.remove('hidden');
+            document.getElementById('champion-name').innerHTML = `
+                <div class="font-black">${winnerObj.title}</div>
+                <div class="font-normal text-2xl opacity-80 mt-2">${winnerObj.year}</div>
+            `;
+            document.getElementById('progress-fill').style.width = '100%';
+            document.getElementById('round-percent').innerText = '100%';
+
+            confetti({
+                particleCount: 200,
+                spread: 90,
+                origin: { y: 0.6 },
+                colors: ['#fbbf24', '#3b82f6', '#10b981']
+            });
+        }
+
+        window.onload = initGame;
+    </script>
+</body>
+</html>
