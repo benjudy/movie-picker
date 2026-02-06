@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Movie Madness Bracket</title>
+    <title>Pick a Movie</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
         
         body {
             font-family: 'Inter', sans-serif;
@@ -15,13 +15,14 @@
             color: #f1f5f9;
         }
 
-        .stage-container {
-            max-width: 500px;
-            margin: 0 auto;
-        }
-
         .movie-card {
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .movie-card:hover {
+            border-color: #3b82f6;
+            transform: translateY(-2px);
+            background-color: #1e293b;
         }
 
         .fade-in {
@@ -41,122 +42,115 @@
             transition: all 0.2s;
         }
         
-        .action-btn:hover {
-            transform: scale(1.02);
+        .action-btn:active {
+            transform: scale(0.98);
         }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-8">
     <div id="app" class="max-w-2xl mx-auto">
         <header class="text-center mb-8">
-            <h1 class="text-3xl md:text-5xl font-extrabold mb-2 bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent uppercase tracking-tight">
-                Pick a movie to watch!
+            <h1 class="text-3xl md:text-4xl font-extrabold mb-2 bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent uppercase tracking-tight">
+                Pick a Movie
             </h1>
-            <div id="round-indicator" class="text-slate-400 font-medium uppercase tracking-widest text-sm">
-                Round of 32
+            <div id="round-indicator" class="text-slate-400 font-bold uppercase tracking-widest text-sm">
+                Tournament Started
             </div>
         </header>
 
         <!-- Progress Tracking -->
-        <div class="mb-6">
-            <div class="flex justify-between text-xs text-slate-500 mb-2 px-1">
-                <span id="match-counter">Match 1 of 16</span>
+        <div id="progress-container" class="mb-8">
+            <div class="flex justify-between text-[10px] uppercase font-bold text-slate-500 mb-2 px-1 tracking-wider">
+                <span id="match-counter">Match 1</span>
                 <span id="round-percent">0%</span>
             </div>
-            <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden mb-4">
+            <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden mb-6">
                 <div id="progress-fill" class="progress-bar bg-blue-500 h-full w-0"></div>
             </div>
-            <div class="text-center text-lg font-semibold text-slate-300">
-                Which movie would you rather watch?
+            <div id="selection-prompt" class="text-center text-lg font-medium text-slate-200">
+                Which would you rather watch?
             </div>
         </div>
 
         <!-- Voting Area -->
-        <div id="voting-stage" class="stage-container space-y-8">
-            <div id="matchup" class="fade-in">
+        <div id="voting-stage" class="space-y-6">
+            <div id="matchup" class="fade-in space-y-4">
                 <!-- Matchup UI will be injected here -->
             </div>
         </div>
 
         <!-- Winner View -->
-        <div id="winner-view" class="hidden text-center fade-in py-12">
-            <div class="text-yellow-500 font-bold mb-4 uppercase tracking-[0.3em] text-sm">The Ultimate Choice</div>
-            <div id="champion-name" class="inline-block bg-gradient-to-br from-yellow-400 via-amber-500 to-orange-600 p-10 rounded-3xl text-slate-950 font-black text-3xl shadow-2xl mb-8">
-                ?
+        <div id="winner-view" class="hidden text-center fade-in py-8">
+            <div class="text-emerald-400 font-bold mb-6 uppercase tracking-[0.2em] text-xs">The Winner</div>
+            <div id="champion-container" class="mb-10">
+                <!-- Champion Card will be injected here -->
             </div>
-            <div>
-                <button onclick="initGame()" class="bg-slate-800 hover:bg-slate-700 text-white px-8 py-3 rounded-full font-bold border border-slate-700 transition-all active:scale-95">
-                    Start New Tournament
-                </button>
-            </div>
+            <button onclick="initGame()" class="bg-blue-600 hover:bg-blue-500 text-white px-10 py-3 rounded-full font-bold transition-all shadow-lg shadow-blue-900/20">
+                New Tournament
+            </button>
         </div>
     </div>
 
     <script>
         const MOVIE_DATA = [
-            { title: "Gone With The Wind", year: "1939", imdb: "https://www.imdb.com/title/tt0031381/" },
-            { title: "Casablanca", year: "1942", imdb: "https://www.imdb.com/title/tt0034583/" },
-            { title: "Dial M for Murder", year: "1954", imdb: "https://www.imdb.com/title/tt0046912/" },
-            { title: "Guys and Dolls", year: "1955", imdb: "https://www.imdb.com/title/tt0048140/" },
-            { title: "Ben Hur", year: "1959", imdb: "https://www.imdb.com/title/tt0052618/" },
-            { title: "Psycho", year: "1960", imdb: "https://www.imdb.com/title/tt0054215/" },
-            { title: "Lawrence of Arabia", year: "1962", imdb: "https://www.imdb.com/title/tt0056172/" },
-            { title: "The Sting", year: "1973", imdb: "https://www.imdb.com/title/tt0070735/" },
-            { title: "Footloose", year: "1984", imdb: "https://www.imdb.com/title/tt0087277/" },
-            { title: "Clue", year: "1985", imdb: "https://www.imdb.com/title/tt0088930/" },
-            { title: "Top Gun", year: "1986", imdb: "https://www.imdb.com/title/tt0092099/" },
-            { title: "Weekend at Bernie's", year: "1989", imdb: "https://www.imdb.com/title/tt0098627/" },
-            { title: "The Bodyguard", year: "1992", imdb: "https://www.imdb.com/title/tt0103855/" },
-            { title: "In the Line of Fire", year: "1993", imdb: "https://www.imdb.com/title/tt0107206/" },
-            { title: "The Firm", year: "1993", imdb: "https://www.imdb.com/title/tt0106918/" },
-            { title: "The Fugitive", year: "1993", imdb: "https://www.imdb.com/title/tt0106977/" },
-            { title: "The Pelican Brief", year: "1993", imdb: "https://www.imdb.com/title/tt0107798/" },
-            { title: "Apollo 13", year: "1995", imdb: "https://www.imdb.com/title/tt0112384/" },
-            { title: "Braveheart", year: "1995", imdb: "https://www.imdb.com/title/tt0112573/" },
-            { title: "Tommy Boy", year: "1995", imdb: "https://www.imdb.com/title/tt0114694/" },
-            { title: "Fear", year: "1996", imdb: "https://www.imdb.com/title/tt0116287/" },
-            { title: "Jerry Maguire", year: "1996", imdb: "https://www.imdb.com/title/tt0116695/" },
-            { title: "Romeo + Juliet", year: "1996", imdb: "https://www.imdb.com/title/tt0117509/" },
-            { title: "Air Force One", year: "1997", imdb: "https://www.imdb.com/title/tt0118570/" },
-            { title: "Titanic", year: "1997", imdb: "https://www.imdb.com/title/tt0120338/" },
-            { title: "The Mask of Zorro", year: "1998", imdb: "https://www.imdb.com/title/tt0120747/" },
-            { title: "Meet Joe Black", year: "1998", imdb: "https://www.imdb.com/title/tt0120755/" },
-            { title: "A Perfect Murder", year: "1998", imdb: "https://www.imdb.com/title/tt0120787/" },
-            { title: "Charlie's Angels", year: "2000", imdb: "https://www.imdb.com/title/tt0160126/" },
-            { title: "What Lies Beneath", year: "2000", imdb: "https://www.imdb.com/title/tt0161081/" },
-            { title: "Moulin Rouge!", year: "2001", imdb: "https://www.imdb.com/title/tt0203009/" },
-            { title: "Chicago", year: "2002", imdb: "https://www.imdb.com/title/tt0299658/" },
-            { title: "Drumline", year: "2002", imdb: "https://www.imdb.com/title/tt0303933/" },
-            { title: "Sweet Home Alabama", year: "2002", imdb: "https://www.imdb.com/title/tt0256415/" },
-            { title: "The Pianist", year: "2002", imdb: "https://www.imdb.com/title/tt0253474/" },
-            { title: "13 Going on 30", year: "2004", imdb: "https://www.imdb.com/title/tt0337563/" },
-            { title: "Pride & Prejudice", year: "2005", imdb: "https://www.imdb.com/title/tt0414387/" },
-            { title: "Blood Diamond", year: "2006", imdb: "https://www.imdb.com/title/tt0450594/" },
-            { title: "Body of Lies", year: "2008", imdb: "https://www.imdb.com/title/tt0758774/" },
-            { title: "The Proposal", year: "2009", imdb: "https://www.imdb.com/title/tt1132470/" },
-            { title: "Green Zone", year: "2010", imdb: "https://www.imdb.com/title/tt0947810/" },
-            { title: "Knight and Day", year: "2010", imdb: "https://www.imdb.com/title/tt1013743/" },
-            { title: "Argo", year: "2012", imdb: "https://www.imdb.com/title/tt1024648/" },
-            { title: "Lawless", year: "2012", imdb: "https://www.imdb.com/title/tt1212450/" },
-            { title: "Captain Phillips", year: "2013", imdb: "https://www.imdb.com/title/tt1535109/" },
-            { title: "Now You See Me", year: "2013", imdb: "https://www.imdb.com/title/tt1670345/" },
-            { title: "Olympus Has Fallen", year: "2013", imdb: "https://www.imdb.com/title/tt2302755/" },
-            { title: "Keeping Up with the Joneses", year: "2016", imdb: "https://www.imdb.com/title/tt2387499/" },
-            { title: "Passengers", year: "2016", imdb: "https://www.imdb.com/title/tt1355644/" },
-            { title: "Ocean's Eight", year: "2018", imdb: "https://www.imdb.com/title/tt5074352/" }
+            { title: "Gone With The Wind", poster: "https://image.tmdb.org/t/p/w1280/lNz2Ow0wGCAvzckW7EOjE03KcYv.jpg", year: "1939", imdb: "https://www.imdb.com/title/tt0031381/" },
+            { title: "Casablanca", poster: "https://image.tmdb.org/t/p/w1280/lGCEKlJo2CnWydQj7aamY7s1S7Q.jpg", year: "1942", imdb: "https://www.imdb.com/title/tt0034583/" },
+            { title: "Dial M for Murder", poster: "https://image.tmdb.org/t/p/w1280/4KKiFDvtEusJzqzlwHp7iMceXKS.jpg", year: "1954", imdb: "https://www.imdb.com/title/tt0046912/" },
+            { title: "Guys and Dolls", poster: "https://image.tmdb.org/t/p/w1280/mrSM6laJJLBVdMdWfeNRa1innnk.jpg", year: "1955", imdb: "https://www.imdb.com/title/tt0048140/" },
+            { title: "Ben-Hur", poster: "https://image.tmdb.org/t/p/w1280/m4WQ1dBIrEIHZNCoAjdpxwSKWyH.jpg", year: "1959", imdb: "https://www.imdb.com/title/tt0052618/" },
+            { title: "Psycho", poster: "https://image.tmdb.org/t/p/w1280/yz4QVqPx3h1hD1DfqqQkCq3rmxW.jpg", year: "1960", imdb: "https://www.imdb.com/title/tt0054215/" },
+            { title: "Lawrence of Arabia", poster: "https://image.tmdb.org/t/p/w1280/AiAm0EtDvyGqNpVoieRw4u65vD1.jpg", year: "1962", imdb: "https://www.imdb.com/title/tt0056172/" },
+            { title: "The Sting", poster: "https://image.tmdb.org/t/p/w1280/ckmYng37zey8INYf6d10cVgIG93.jpg", year: "1973", imdb: "https://www.imdb.com/title/tt0070735/" },
+            { title: "Footloose", poster: "https://image.tmdb.org/t/p/w1280/9JEDjBCXCx3eKTSkXwispf0UN3O.jpg", year: "1984", imdb: "https://www.imdb.com/title/tt0087277/" },
+            { title: "Clue", poster: "https://image.tmdb.org/t/p/w1280/aRxbYOYHS8T73nzR8hsLousoplR.jpg", year: "1985", imdb: "https://www.imdb.com/title/tt0088930/" },
+            { title: "Top Gun", poster: "https://image.tmdb.org/t/p/w1280/xUuHj3CgmZQ9P2cMaqQs4J0d4Zc.jpg", year: "1986", imdb: "https://www.imdb.com/title/tt0092099/" },
+            { title: "Weekend at Bernie's", poster: "https://image.tmdb.org/t/p/w1280/4RtjBkBSqHG46uieHgTtM7oKlpo.jpg", year: "1989", imdb: "https://www.imdb.com/title/tt0098627/" },
+            { title: "The Bodyguard", poster: "https://image.tmdb.org/t/p/w1280/ihWF0uY1xnKqw9YK7ZHNLUZOhcO.jpg", year: "1992", imdb: "https://www.imdb.com/title/tt0103855/" },
+            { title: "In the Line of Fire", poster: "https://image.tmdb.org/t/p/w1280/3NvOFpmyECI3DNExYMtFIRcGMsu.jpg", year: "1993", imdb: "https://www.imdb.com/title/tt0107206/" },
+            { title: "The Firm", poster: "https://image.tmdb.org/t/p/w1280/kFexXCzidkm4LwlgZqxsJsDQB5v.jpg", year: "1993", imdb: "https://www.imdb.com/title/tt0106918/" },
+            { title: "The Fugitive", poster: "https://image.tmdb.org/t/p/w1280/b3rEtLKyOnF89mcK75GXDXdmOEf.jpg", year: "1993", imdb: "https://www.imdb.com/title/tt0106977/" },
+            { title: "The Pelican Brief", poster: "https://image.tmdb.org/t/p/w1280/7B1HS0SqfJR1jbeHS6V0ZWdzLXP.jpg", year: "1993", imdb: "https://www.imdb.com/title/tt0107798/" },
+            { title: "Apollo 13", poster: "https://image.tmdb.org/t/p/w1280/tVeKscCm2fY1xDXZk8PgnZ87h9S.jpg", year: "1995", imdb: "https://www.imdb.com/title/tt0112384/" },
+            { title: "Braveheart", poster: "https://image.tmdb.org/t/p/w1280/or1gBugydmjToAEq7OZY0owwFk.jpg", year: "1995", imdb: "https://www.imdb.com/title/tt0112573/" },
+            { title: "Tommy Boy", poster: "https://image.tmdb.org/t/p/w1280/jeEM8v1OA9u6F5NC2lzXD04Ls1U.jpg", year: "1995", imdb: "https://www.imdb.com/title/tt0114694/" },
+            { title: "Fear", poster: "https://image.tmdb.org/t/p/w1280/ut8snuINzOibbKnvpTnsGWQr4Nl.jpg", year: "1996", imdb: "https://www.imdb.com/title/tt0116287/" },
+            { title: "Jerry Maguire", poster: "https://image.tmdb.org/t/p/w1280/lABvGN7fDk5ifnwZoxij6G96t2w.jpg", year: "1996", imdb: "https://www.imdb.com/title/tt0116695/" },
+            { title: "Romeo + Juliet", poster: "https://image.tmdb.org/t/p/w1280/eLf4jclPijOqfEp6bDAmezRFxk5.jpg", year: "1996", imdb: "https://www.imdb.com/title/tt0117509/" },
+            { title: "Air Force One", poster: "https://image.tmdb.org/t/p/w1280/evO1iENjLpUnbwjnt5XK85jRYob.jpg", year: "1997", imdb: "https://www.imdb.com/title/tt0118571/" },
+            { title: "Titanic", poster: "https://image.tmdb.org/t/p/w1280/5bTWA20cL9LCIGNpde4Epc2Ijzn.jpg", year: "1997", imdb: "https://www.imdb.com/title/tt0120338/" },
+            { title: "The Mask of Zorro", poster: "https://image.tmdb.org/t/p/w1280/bdMufwGDDzqu4kTSQwrKc5WR4bu.jpg", year: "1998", imdb: "https://www.imdb.com/title/tt0120746/" },
+            { title: "Meet Joe Black", poster: "https://image.tmdb.org/t/p/w1280/fDPAjvfPMomkKF7cMRmL5Anak61.jpg", year: "1998", imdb: "https://www.imdb.com/title/tt0119643/" },
+            { title: "A Perfect Murder", poster: "https://image.tmdb.org/t/p/w1280/wC0ax12N9GQ8vMXPEs4nES5AAiB.jpg", year: "1998", imdb: "https://www.imdb.com/title/tt0120787/" },
+            { title: "Charlie's Angels", poster: "https://image.tmdb.org/t/p/w1280/iHTmZs0BmkwMCYi8rhvMWC5G4EM.jpg", year: "2000", imdb: "https://www.imdb.com/title/tt0160127/" },
+            { title: "What Lies Beneath", poster: "https://image.tmdb.org/t/p/w1280/2L3Cn0CizbSy2E9KJt1SiOSyb6p.jpg", year: "2000", imdb: "https://www.imdb.com/title/tt0161081/" },
+            { title: "Moulin Rouge!", poster: "https://image.tmdb.org/t/p/w1280/2kjM5CUZRIU5yOANUowrbJcRL9L.jpg", year: "2001", imdb: "https://www.imdb.com/title/tt0203009/" },
+            { title: "Chicago", poster: "https://image.tmdb.org/t/p/w1280/3ED8cWCXY9zkx77Sd0N5qMbsdDP.jpg", year: "2002", imdb: "https://www.imdb.com/title/tt0299658/" },
+            { title: "Drumline", poster: "https://image.tmdb.org/t/p/w1280/zl7gdxYqKdFCioPT3DAkZR5DDUP.jpg", year: "2002", imdb: "https://www.imdb.com/title/tt0303933/" },
+            { title: "Sweet Home Alabama", poster: "https://image.tmdb.org/t/p/w1280/698cbxq0SRwCdOPG5Bwi7JDk12d.jpg", year: "2002", imdb: "https://www.imdb.com/title/tt0256415/" },
+            { title: "The Pianist", poster: "https://image.tmdb.org/t/p/w1280/2hFvxCCWrTmCYwfy7yum0GKRi3Y.jpg", year: "2002", imdb: "https://www.imdb.com/title/tt0253474/" },
+            { title: "13 Going on 30", poster: "https://image.tmdb.org/t/p/w1280/iNZdSIfhSCMtRILDNyhLn8UKeSG.jpg", year: "2004", imdb: "https://www.imdb.com/title/tt0337563/" },
+            { title: "Pride & Prejudice", poster: "https://image.tmdb.org/t/p/w1280/o8UhmEbWPHmTUxP0lMuCoqNkbB3.jpg", year: "2005", imdb: "https://www.imdb.com/title/tt0414387/" },
+            { title: "Blood Diamond", poster: "https://image.tmdb.org/t/p/w1280/bqKNoySmI4eOjsSjJEnLj4j2HAp.jpg", year: "2006", imdb: "https://www.imdb.com/title/tt0450259/" },
+            { title: "Body of Lies", poster: "https://image.tmdb.org/t/p/w1280/rNEZug6er0bIj9LVN2JaQig6oZy.jpg", year: "2008", imdb: "https://www.imdb.com/title/tt0758774/" },
+            { title: "The Proposal", poster: "https://image.tmdb.org/t/p/w1280/6stnAm1wSek8ZrislwK4xGTyCnt.jpg", year: "2009", imdb: "https://www.imdb.com/title/tt1041829/" },
+            { title: "Green Zone", poster: "https://image.tmdb.org/t/p/w1280/czFIaeukSxNEccysQeys1PCkuOG.jpg", year: "2010", imdb: "https://www.imdb.com/title/tt0947810/" },
+            { title: "Knight and Day", poster: "https://image.tmdb.org/t/p/w1280/a7JmOBMNj5erYTgt4u1mQgvHItu.jpg", year: "2010", imdb: "https://www.imdb.com/title/tt1013743/" },
+            { title: "Argo", poster: "https://image.tmdb.org/t/p/w1280/m5gPWFZFIp4UJFABgWyLkbXv8GX.jpg", year: "2012", imdb: "https://www.imdb.com/title/tt1024648/" },
+            { title: "Lawless", poster: "https://image.tmdb.org/t/p/w1280/Ahtzwts22ayviD3LEVslfL4nRWB.jpg", year: "2012", imdb: "https://www.imdb.com/title/tt1212450/" },
+            { title: "Captain Phillips", poster: "https://image.tmdb.org/t/p/w1280/8Td0kkocW6sD3uRpzwfMfkqMWhx.jpg", year: "2013", imdb: "https://www.imdb.com/title/tt1535109/" },
+            { title: "Now You See Me", poster: "https://image.tmdb.org/t/p/w1280/tWsNYbrqy1p1w6K9zRk0mSchztT.jpg", year: "2013", imdb: "https://www.imdb.com/title/tt1670345/" },
+            { title: "Olympus Has Fallen", poster: "https://image.tmdb.org/t/p/w1280/u3GTFGwesNBNd0t1hiLaEk1iqZU.jpg", year: "2013", imdb: "https://www.imdb.com/title/tt2302755/" },
+            { title: "Keeping Up with the Joneses", poster: "https://image.tmdb.org/t/p/w1280/yvWcTrRCzE4C2hkd2wV4erPuKCn.jpg", year: "2016", imdb: "https://www.imdb.com/title/tt2387499/" },
+            { title: "Passengers", poster: "https://image.tmdb.org/t/p/w1280/jK9S6HANSf2no64v1x1HxfcpmcA.jpg", year: "2016", imdb: "https://www.imdb.com/title/tt1355644/" },
+            { title: "Ocean's Eight", poster: "https://image.tmdb.org/t/p/w1280/MvYpKlpFukTivnlBhizGbkAe3v.jpg", year: "2018", imdb: "https://www.imdb.com/title/tt5164214/" }
         ];
 
         let state = {
-            currentRound: [],     
-            winnersOfRound: [],   
-            matchIndex: 0,        
-            roundNames: {
-                32: "Round of 32",
-                16: "Round of 16",
-                8: "Quarter-finals",
-                4: "Semi-finals",
-                2: "The Finals"
-            }
+            currentRound: [],
+            winnersOfRound: [],
+            matchIndex: 0,
+            roundNumber: 1,
+            totalRounds: 1
         };
 
         function shuffle(array) {
@@ -168,16 +162,53 @@
             return newArr;
         }
 
+        function calculateTotalRounds(count) {
+            let rounds = 0;
+            let current = count;
+            while (current > 1) {
+                current = Math.ceil(current / 2);
+                rounds++;
+            }
+            return rounds;
+        }
+
         function initGame() {
-            const shuffled = shuffle(MOVIE_DATA);
-            state.currentRound = shuffled.slice(0, 32);
+            state.currentRound = shuffle(MOVIE_DATA);
             state.winnersOfRound = [];
             state.matchIndex = 0;
+            state.roundNumber = 1;
+            state.totalRounds = calculateTotalRounds(MOVIE_DATA.length);
 
             document.getElementById('winner-view').classList.add('hidden');
             document.getElementById('voting-stage').classList.remove('hidden');
+            document.getElementById('progress-container').classList.remove('hidden');
             
             renderMatch();
+        }
+
+        function createMovieCard(movie, index) {
+            return `
+                <div class="movie-card flex bg-slate-800/40 rounded-xl border border-slate-700 overflow-hidden h-40 md:h-48">
+                    <div class="w-28 md:w-32 flex-shrink-0 bg-slate-900">
+                        <img src="${movie.poster}" alt="${movie.title}" class="w-full h-full object-cover" 
+                             onerror="this.src='https://via.placeholder.com/200x300/1e293b/ffffff?text=?'">
+                    </div>
+                    <div class="flex-grow p-4 md:p-6 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-lg md:text-xl font-bold leading-tight line-clamp-2">${movie.title}</h3>
+                            <p class="text-slate-400 font-medium text-sm mt-1">${movie.year}</p>
+                        </div>
+                        <div class="flex items-center gap-3 mt-auto">
+                            <a href="${movie.imdb}" target="_blank" class="action-btn px-3 py-2 bg-black border border-[#f5c518] text-[#f5c518] hover:bg-[#f5c518]/10 font-black rounded-lg text-[10px] uppercase tracking-wider shadow-lg text-center">
+                                IMDb
+                            </a>
+                            <button id="btn-pick-${index}" class="action-btn px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg text-[10px] md:text-xs uppercase tracking-wider shadow-lg">
+                                Pick This Movie
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
         }
 
         function renderMatch() {
@@ -187,12 +218,18 @@
             const progressFill = document.getElementById('progress-fill');
             const roundPercent = document.getElementById('round-percent');
 
-            roundIndicator.innerText = state.roundNames[state.currentRound.length] || "Tournament";
+            const roundSize = state.currentRound.length;
+            roundIndicator.innerText = `Round ${state.roundNumber} of ${state.totalRounds}`;
 
-            const totalMatchesInRound = state.currentRound.length / 2;
-            const currentMatchDisplay = state.matchIndex + 1;
-            matchCounter.innerText = `Match ${currentMatchDisplay} of ${totalMatchesInRound}`;
+            const totalMatchesInRound = Math.floor(roundSize / 2);
             
+            if (state.matchIndex >= totalMatchesInRound && roundSize % 2 !== 0) {
+                state.winnersOfRound.push(state.currentRound[roundSize - 1]);
+                advanceRound();
+                return;
+            }
+
+            matchCounter.innerText = `Match ${state.matchIndex + 1} / ${totalMatchesInRound}`;
             const progress = (state.matchIndex / totalMatchesInRound) * 100;
             progressFill.style.width = `${progress}%`;
             roundPercent.innerText = `${Math.round(progress)}%`;
@@ -201,35 +238,13 @@
             const movie2 = state.currentRound[state.matchIndex * 2 + 1];
 
             matchupDiv.innerHTML = `
-                <div class="flex flex-col gap-4">
-                    <div class="movie-card w-full p-6 pb-14 rounded-2xl border-2 border-slate-700 bg-slate-800/50 flex flex-col items-center justify-center text-center min-h-[160px] relative">
-                        <span class="font-extrabold text-xl">${movie1.title}</span>
-                        <span class="font-normal text-base text-slate-400 mt-1">${movie1.year}</span>
-                        <div class="absolute bottom-4 left-0 right-0 flex justify-center gap-2 px-4">
-                            <a href="${movie1.imdb}" target="_blank" class="action-btn px-4 py-2 bg-slate-700 text-xs font-black rounded-lg text-slate-100 uppercase tracking-wide border border-slate-500 hover:border-amber-500 hover:bg-amber-600 hover:text-black">
-                                IMDB
-                            </a>
-                            <button id="btn-pick-1" class="action-btn px-4 py-2 bg-blue-600 text-xs font-black rounded-lg text-white uppercase tracking-wide border border-blue-500 hover:bg-blue-500">
-                                Pick this movie
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="text-center text-slate-600 font-black italic tracking-widest py-1 uppercase text-sm">or</div>
-
-                    <div class="movie-card w-full p-6 pb-14 rounded-2xl border-2 border-slate-700 bg-slate-800/50 flex flex-col items-center justify-center text-center min-h-[160px] relative">
-                        <span class="font-extrabold text-xl">${movie2.title}</span>
-                        <span class="font-normal text-base text-slate-400 mt-1">${movie2.year}</span>
-                        <div class="absolute bottom-4 left-0 right-0 flex justify-center gap-2 px-4">
-                            <a href="${movie2.imdb}" target="_blank" class="action-btn px-4 py-2 bg-slate-700 text-xs font-black rounded-lg text-slate-100 uppercase tracking-wide border border-slate-500 hover:border-amber-500 hover:bg-amber-600 hover:text-black">
-                                IMDB
-                            </a>
-                            <button id="btn-pick-2" class="action-btn px-4 py-2 bg-blue-600 text-xs font-black rounded-lg text-white uppercase tracking-wide border border-blue-500 hover:bg-blue-500">
-                                Pick this movie
-                            </button>
-                        </div>
-                    </div>
+                ${createMovieCard(movie1, 1)}
+                <div class="flex items-center gap-4">
+                    <div class="flex-grow h-[1px] bg-slate-800"></div>
+                    <span class="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em]">VS</span>
+                    <div class="flex-grow h-[1px] bg-slate-800"></div>
                 </div>
+                ${createMovieCard(movie2, 2)}
             `;
 
             document.getElementById('btn-pick-1').onclick = () => vote(movie1);
@@ -244,35 +259,51 @@
             state.winnersOfRound.push(movieObj);
             state.matchIndex++;
 
-            if (state.matchIndex >= state.currentRound.length / 2) {
-                if (state.winnersOfRound.length === 1) {
-                    showWinner(state.winnersOfRound[0]);
-                } else {
-                    state.currentRound = [...state.winnersOfRound];
-                    state.winnersOfRound = [];
-                    state.matchIndex = 0;
-                    setTimeout(renderMatch, 300);
+            if (state.matchIndex >= Math.floor(state.currentRound.length / 2)) {
+                if (state.currentRound.length % 2 !== 0) {
+                    state.winnersOfRound.push(state.currentRound[state.currentRound.length - 1]);
                 }
+                advanceRound();
             } else {
                 renderMatch();
             }
         }
 
+        function advanceRound() {
+            if (state.winnersOfRound.length === 1) {
+                showWinner(state.winnersOfRound[0]);
+            } else {
+                state.currentRound = [...state.winnersOfRound];
+                state.winnersOfRound = [];
+                state.matchIndex = 0;
+                state.roundNumber++;
+                setTimeout(renderMatch, 300);
+            }
+        }
+
         function showWinner(winnerObj) {
             document.getElementById('voting-stage').classList.add('hidden');
+            document.getElementById('progress-container').classList.add('hidden'); // Hide progress and prompt
             document.getElementById('winner-view').classList.remove('hidden');
-            document.getElementById('champion-name').innerHTML = `
-                <div class="font-black">${winnerObj.title}</div>
-                <div class="font-normal text-2xl opacity-80 mt-2">${winnerObj.year}</div>
+            document.getElementById('round-indicator').innerText = "Tournament Complete";
+            
+            document.getElementById('champion-container').innerHTML = `
+                <div class="bg-slate-800/50 rounded-2xl border-2 border-emerald-500/30 overflow-hidden flex flex-col items-center p-6 max-w-xs mx-auto shadow-2xl">
+                    <img src="${winnerObj.poster}" class="w-48 h-auto rounded-lg shadow-xl mb-6 border border-slate-700" 
+                         onerror="this.src='https://via.placeholder.com/300x450/1e293b/ffffff?text=?'">
+                    <h2 class="text-2xl font-black text-white text-center leading-tight mb-2">${winnerObj.title}</h2>
+                    <p class="text-slate-400 font-bold mb-4">${winnerObj.year}</p>
+                    <div class="flex items-center gap-3">
+                        <a href="${winnerObj.imdb}" target="_blank" class="action-btn px-4 py-2 bg-black border border-[#f5c518] text-[#f5c518] hover:bg-[#f5c518]/10 font-black rounded-lg text-xs uppercase tracking-wider shadow-lg">IMDb</a>
+                    </div>
+                </div>
             `;
-            document.getElementById('progress-fill').style.width = '100%';
-            document.getElementById('round-percent').innerText = '100%';
-
+            
             confetti({
-                particleCount: 200,
-                spread: 90,
+                particleCount: 150,
+                spread: 70,
                 origin: { y: 0.6 },
-                colors: ['#fbbf24', '#3b82f6', '#10b981']
+                colors: ['#3b82f6', '#10b981', '#fbbf24']
             });
         }
 
