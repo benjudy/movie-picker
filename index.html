@@ -45,6 +45,11 @@
         .action-btn:active {
             transform: scale(0.98);
         }
+
+        .setup-card:hover {
+            border-color: #3b82f6;
+            background-color: #1e293b;
+        }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-8">
@@ -54,70 +59,107 @@
                 Pick A Movie
             </h1>
             <div id="round-indicator" class="text-slate-400 font-bold uppercase tracking-widest text-sm">
-                Tournament Started
+                Ready to play?
             </div>
         </header>
 
-        <!-- Progress Tracking -->
-        <div id="progress-container" class="mb-8">
-            <div class="flex justify-between text-[10px] uppercase font-bold text-slate-500 mb-2 px-1 tracking-wider">
-                <span id="match-counter">Match 1</span>
-                <span id="round-percent">0%</span>
-            </div>
-            <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden mb-6">
-                <div id="progress-fill" class="progress-bar bg-blue-500 h-full w-0"></div>
-            </div>
-            <div id="selection-prompt" class="text-center text-lg font-medium text-slate-200">
-                Which would you rather watch?
-            </div>
-        </div>
-
-        <!-- Voting Area -->
-        <div id="voting-stage" class="space-y-6">
-            <div id="matchup" class="fade-in space-y-4">
-                <!-- Matchup UI injected here -->
+        <!-- Start Screen -->
+        <div id="start-screen" class="fade-in space-y-4">
+            <div class="text-center mb-8">
+                <p class="text-slate-400">Choose your tournament size to begin.</p>
             </div>
             
-            <div id="random-pick-container" class="flex justify-center pt-4">
-                <button id="btn-random-pick" class="action-btn bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white px-6 py-2.5 rounded-lg border border-slate-700 text-xs font-bold uppercase tracking-widest flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+            <button onclick="startGame('full')" class="setup-card w-full text-left p-6 rounded-2xl bg-slate-800/40 border border-slate-700 transition-all group">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-xl font-bold group-hover:text-blue-400 transition-colors">The Full List</h3>
+                        <p id="full-list-desc" class="text-slate-400 text-sm mt-1">Loading movie count...</p>
+                    </div>
+                    <div class="text-blue-500 font-black text-2xl">→</div>
+                </div>
+            </button>
+
+            <button onclick="startGame(32)" class="setup-card w-full text-left p-6 rounded-2xl bg-slate-800/40 border border-slate-700 transition-all group">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-xl font-bold group-hover:text-blue-400 transition-colors">Quick 32</h3>
+                        <p class="text-slate-400 text-sm mt-1">Randomly selects 32 movies. 5 rounds of voting.</p>
+                    </div>
+                    <div class="text-blue-500 font-black text-2xl">→</div>
+                </div>
+            </button>
+
+            <button onclick="startGame(16)" class="setup-card w-full text-left p-6 rounded-2xl bg-slate-800/40 border border-slate-700 transition-all group">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-xl font-bold group-hover:text-blue-400 transition-colors">Sweet 16</h3>
+                        <p class="text-slate-400 text-sm mt-1">Randomly selects 16 movies. 4 rounds of voting.</p>
+                    </div>
+                    <div class="text-blue-500 font-black text-2xl">→</div>
+                </div>
+            </button>
+        </div>
+
+        <!-- Main Game UI (Hidden by default) -->
+        <div id="game-ui" class="hidden">
+            <!-- Progress Tracking -->
+            <div id="progress-container" class="mb-8">
+                <div class="flex justify-between text-[10px] uppercase font-bold text-slate-500 mb-2 px-1 tracking-wider">
+                    <span id="match-counter">Match 1</span>
+                    <span id="round-percent">0%</span>
+                </div>
+                <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden mb-6">
+                    <div id="progress-fill" class="progress-bar bg-blue-500 h-full w-0"></div>
+                </div>
+                <div id="selection-prompt" class="text-center text-lg font-medium text-slate-200">
+                    Which would you rather watch?
+                </div>
+            </div>
+
+            <!-- Voting Area -->
+            <div id="voting-stage" class="space-y-6">
+                <div id="matchup" class="fade-in space-y-4">
+                    <!-- Matchup UI injected here -->
+                </div>
+                
+                <div id="random-pick-container" class="flex justify-center pt-4">
+                    <button id="btn-random-pick" class="action-btn bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white px-6 py-2.5 rounded-lg border border-slate-700 text-xs font-bold uppercase tracking-widest">
+                        I can't decide! Pick for me
+                    </button>
+                </div>
+            </div>
+
+            <!-- Round Interstitial -->
+            <div id="round-interstitial" class="hidden text-center fade-in py-12">
+                <div class="mb-8">
+                    <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-emerald-500/20 text-emerald-400 mb-6 border border-emerald-500/30">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                    </div>
+                    <h2 class="text-3xl font-black text-white mb-3">Round Complete!</h2>
+                    <p id="interstitial-msg" class="text-slate-400 max-w-sm mx-auto text-lg leading-relaxed">
+                        Ready for the next bracket?
+                    </p>
+                </div>
+                <button id="btn-next-round" class="action-btn bg-emerald-600 hover:bg-emerald-500 text-white px-12 py-4 rounded-xl font-extrabold text-lg shadow-xl shadow-emerald-900/20 flex items-center gap-3 mx-auto">
+                    Start Next Round
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                     </svg>
-                    I can't decide! Pick for me
                 </button>
             </div>
-        </div>
 
-        <!-- Round Interstitial -->
-        <div id="round-interstitial" class="hidden text-center fade-in py-12">
-            <div class="mb-8">
-                <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-emerald-500/20 text-emerald-400 mb-6 border border-emerald-500/30">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
+            <!-- Winner View -->
+            <div id="winner-view" class="hidden text-center fade-in py-8">
+                <div class="text-emerald-400 font-bold mb-6 uppercase tracking-[0.2em] text-xs">Tournament Champion</div>
+                <div id="champion-container" class="mb-10">
+                    <!-- Champion Card injected here -->
                 </div>
-                <h2 class="text-3xl font-black text-white mb-3">Round Complete!</h2>
-                <p id="interstitial-msg" class="text-slate-400 max-w-sm mx-auto text-lg leading-relaxed">
-                    Ready for the next bracket?
-                </p>
+                <button onclick="resetToStart()" class="bg-blue-600 hover:bg-blue-500 text-white px-10 py-3 rounded-full font-bold transition-all shadow-lg shadow-blue-900/20">
+                    New Tournament
+                </button>
             </div>
-            <button id="btn-next-round" class="action-btn bg-emerald-600 hover:bg-emerald-500 text-white px-12 py-4 rounded-xl font-extrabold text-lg shadow-xl shadow-emerald-900/20 flex items-center gap-3 mx-auto">
-                Start Next Round
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-            </button>
-        </div>
-
-        <!-- Winner View -->
-        <div id="winner-view" class="hidden text-center fade-in py-8">
-            <div class="text-emerald-400 font-bold mb-6 uppercase tracking-[0.2em] text-xs">Tournament Champion</div>
-            <div id="champion-container" class="mb-10">
-                <!-- Champion Card injected here -->
-            </div>
-            <button onclick="initGame()" class="bg-blue-600 hover:bg-blue-500 text-white px-10 py-3 rounded-full font-bold transition-all shadow-lg shadow-blue-900/20">
-                Start New Tournament
-            </button>
         </div>
     </div>
 
@@ -125,6 +167,7 @@
         const MOVIE_DATA = [
             { title: "Gone With The Wind", poster: "https://image.tmdb.org/t/p/w1280/lNz2Ow0wGCAvzckW7EOjE03KcYv.jpg", year: "1939", imdb: "https://www.imdb.com/title/tt0031381/" },
             { title: "Casablanca", poster: "https://image.tmdb.org/t/p/w1280/lGCEKlJo2CnWydQj7aamY7s1S7Q.jpg", year: "1942", imdb: "https://www.imdb.com/title/tt0034583/" },
+            { title: "On the Town", poster: "https://image.tmdb.org/t/p/w1280/lEU8QQmIayAtPZrCDf2czQgTjQ1.jpg", year: "1949", imdb: "https://www.imdb.com/title/tt0041716/" },
             { title: "Dial M for Murder", poster: "https://image.tmdb.org/t/p/w1280/4KKiFDvtEusJzqzlwHp7iMceXKS.jpg", year: "1954", imdb: "https://www.imdb.com/title/tt0046912/" },
             { title: "Guys and Dolls", poster: "https://image.tmdb.org/t/p/w1280/mrSM6laJJLBVdMdWfeNRa1innnk.jpg", year: "1955", imdb: "https://www.imdb.com/title/tt0048140/" },
             { title: "Ben-Hur", poster: "https://image.tmdb.org/t/p/w1280/m4WQ1dBIrEIHZNCoAjdpxwSKWyH.jpg", year: "1959", imdb: "https://www.imdb.com/title/tt0052618/" },
@@ -144,6 +187,7 @@
             { title: "Legends of the Fall", poster: "https://image.tmdb.org/t/p/w1280/t1KPGlW0UGd0m515LPQmk2F4nu1.jpg", year: "1994", imdb: "https://www.imdb.com/title/tt0110322/" },
             { title: "Apollo 13", poster: "https://image.tmdb.org/t/p/w1280/tVeKscCm2fY1xDXZk8PgnZ87h9S.jpg", year: "1995", imdb: "https://www.imdb.com/title/tt0112384/" },
             { title: "Braveheart", poster: "https://image.tmdb.org/t/p/w1280/or1gBugydmjToAEq7OZY0owwFk.jpg", year: "1995", imdb: "https://www.imdb.com/title/tt0112573/" },
+            { title: "GoldenEye", poster: "https://m.media-amazon.com/images/M/MV5BOGQxNmYyY2YtZGIyNy00ODgxLThhZWEtZGIyNjJhYzFlOTllXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg", year: "1995", imdb: "https://www.imdb.com/title/tt0113189/" },
             { title: "Tommy Boy", poster: "https://image.tmdb.org/t/p/w1280/jeEM8v1OA9u6F5NC2lzXD04Ls1U.jpg", year: "1995", imdb: "https://www.imdb.com/title/tt0114694/" },
             { title: "Fear", poster: "https://image.tmdb.org/t/p/w1280/ut8snuINzOibbKnvpTnsGWQr4Nl.jpg", year: "1996", imdb: "https://www.imdb.com/title/tt0116287/" },
             { title: "Jerry Maguire", poster: "https://image.tmdb.org/t/p/w1280/lABvGN7fDk5ifnwZoxij6G96t2w.jpg", year: "1996", imdb: "https://www.imdb.com/title/tt0116695/" },
@@ -204,19 +248,41 @@
             return rounds;
         }
 
-        function initGame() {
-            state.currentRound = shuffle(MOVIE_DATA);
+        function initStartScreen() {
+            const count = MOVIE_DATA.length;
+            const rounds = calculateTotalRounds(count);
+            document.getElementById('full-list-desc').innerText = `All ${count} movies. ${rounds} rounds of voting.`;
+        }
+
+        function startGame(mode) {
+            let selectedMovies = shuffle(MOVIE_DATA);
+            
+            if (mode !== 'full') {
+                selectedMovies = selectedMovies.slice(0, mode);
+            }
+
+            state.currentRound = selectedMovies;
             state.winnersOfRound = [];
             state.matchIndex = 0;
             state.roundNumber = 1;
-            state.totalRounds = calculateTotalRounds(MOVIE_DATA.length);
+            state.totalRounds = calculateTotalRounds(selectedMovies.length);
 
+            // UI Transitions
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('game-ui').classList.remove('hidden');
             document.getElementById('winner-view').classList.add('hidden');
             document.getElementById('voting-stage').classList.remove('hidden');
             document.getElementById('progress-container').classList.remove('hidden');
             document.getElementById('round-interstitial').classList.add('hidden');
             
             renderMatch();
+        }
+
+        function resetToStart() {
+            document.getElementById('game-ui').classList.add('hidden');
+            document.getElementById('start-screen').classList.remove('hidden');
+            document.getElementById('round-indicator').innerText = "Ready to play?";
+            initStartScreen();
         }
 
         function createMovieCard(movie, index) {
@@ -370,7 +436,7 @@
             });
         }
 
-        window.onload = initGame;
+        window.onload = initStartScreen;
     </script>
 </body>
 </html>
