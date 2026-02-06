@@ -50,6 +50,18 @@
             border-color: #3b82f6;
             background-color: #1e293b;
         }
+        
+        /* Custom scrollbar for the compact list */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 10px;
+        }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-8">
@@ -64,40 +76,50 @@
         </header>
 
         <!-- Start Screen -->
-        <div id="start-screen" class="fade-in space-y-4">
-            <div class="text-center mb-8">
-                <p class="text-slate-400">Choose your tournament size to begin.</p>
+        <div id="start-screen" class="fade-in">
+            <div class="space-y-4 mb-12">
+                <div class="text-center mb-8">
+                    <p class="text-slate-400">Choose your tournament size to begin.</p>
+                </div>
+                
+                <button onclick="startGame('full')" class="setup-card w-full text-left p-6 rounded-2xl bg-slate-800/40 border border-slate-700 transition-all group">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="text-xl font-bold group-hover:text-blue-400 transition-colors">The Full List</h3>
+                            <p id="full-list-desc" class="text-slate-400 text-sm mt-1">Loading movie count...</p>
+                        </div>
+                        <div class="text-blue-500 font-black text-2xl">→</div>
+                    </div>
+                </button>
+
+                <button onclick="startGame(32)" class="setup-card w-full text-left p-6 rounded-2xl bg-slate-800/40 border border-slate-700 transition-all group">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="text-xl font-bold group-hover:text-blue-400 transition-colors">Quick 32</h3>
+                            <p class="text-slate-400 text-sm mt-1">Randomly selects 32 movies. 5 rounds of voting.</p>
+                        </div>
+                        <div class="text-blue-500 font-black text-2xl">→</div>
+                    </div>
+                </button>
+
+                <button onclick="startGame(16)" class="setup-card w-full text-left p-6 rounded-2xl bg-slate-800/40 border border-slate-700 transition-all group">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="text-xl font-bold group-hover:text-blue-400 transition-colors">Sweet 16</h3>
+                            <p class="text-slate-400 text-sm mt-1">Randomly selects 16 movies. 4 rounds of voting.</p>
+                        </div>
+                        <div class="text-blue-500 font-black text-2xl">→</div>
+                    </div>
+                </button>
             </div>
-            
-            <button onclick="startGame('full')" class="setup-card w-full text-left p-6 rounded-2xl bg-slate-800/40 border border-slate-700 transition-all group">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <h3 class="text-xl font-bold group-hover:text-blue-400 transition-colors">The Full List</h3>
-                        <p id="full-list-desc" class="text-slate-400 text-sm mt-1">Loading movie count...</p>
-                    </div>
-                    <div class="text-blue-500 font-black text-2xl">→</div>
-                </div>
-            </button>
 
-            <button onclick="startGame(32)" class="setup-card w-full text-left p-6 rounded-2xl bg-slate-800/40 border border-slate-700 transition-all group">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <h3 class="text-xl font-bold group-hover:text-blue-400 transition-colors">Quick 32</h3>
-                        <p class="text-slate-400 text-sm mt-1">Randomly selects 32 movies. 5 rounds of voting.</p>
-                    </div>
-                    <div class="text-blue-500 font-black text-2xl">→</div>
+            <!-- Full List Section -->
+            <div class="border-t border-slate-800 pt-10 pb-20">
+                <h2 class="text-xl font-extrabold text-slate-200 mb-6 uppercase tracking-widest text-center">Full list of movies</h2>
+                <div id="full-movie-inventory" class="grid grid-cols-1 sm:grid-cols-2 gap-3 opacity-80">
+                    <!-- Compact list items injected here -->
                 </div>
-            </button>
-
-            <button onclick="startGame(16)" class="setup-card w-full text-left p-6 rounded-2xl bg-slate-800/40 border border-slate-700 transition-all group">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <h3 class="text-xl font-bold group-hover:text-blue-400 transition-colors">Sweet 16</h3>
-                        <p class="text-slate-400 text-sm mt-1">Randomly selects 16 movies. 4 rounds of voting.</p>
-                    </div>
-                    <div class="text-blue-500 font-black text-2xl">→</div>
-                </div>
-            </button>
+            </div>
         </div>
 
         <!-- Main Game UI (Hidden by default) -->
@@ -252,6 +274,18 @@
             const count = MOVIE_DATA.length;
             const rounds = calculateTotalRounds(count);
             document.getElementById('full-list-desc').innerText = `All ${count} movies. ${rounds} rounds of voting.`;
+            
+            // Populate the compact inventory list
+            const inventoryContainer = document.getElementById('full-movie-inventory');
+            inventoryContainer.innerHTML = MOVIE_DATA.sort((a,b) => a.title.localeCompare(b.title)).map(movie => `
+                <div class="flex items-center gap-3 p-2 bg-slate-800/20 rounded-lg border border-slate-800/50">
+                    <img src="${movie.poster}" class="w-8 h-10 object-cover rounded shadow" onerror="this.src='https://via.placeholder.com/30x40/1e293b/ffffff?text=?'">
+                    <div class="overflow-hidden">
+                        <div class="text-[11px] font-bold text-slate-200 truncate">${movie.title}</div>
+                        <div class="text-[9px] text-slate-500">${movie.year}</div>
+                    </div>
+                </div>
+            `).join('');
         }
 
         function startGame(mode) {
@@ -276,6 +310,7 @@
             document.getElementById('round-interstitial').classList.add('hidden');
             
             renderMatch();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function resetToStart() {
@@ -283,6 +318,7 @@
             document.getElementById('start-screen').classList.remove('hidden');
             document.getElementById('round-indicator').innerText = "Ready to play?";
             initStartScreen();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function createMovieCard(movie, index) {
