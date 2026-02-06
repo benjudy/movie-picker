@@ -24,12 +24,6 @@
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .movie-card:hover:not(.selected) {
-            transform: translateY(-2px);
-            border-color: #38bdf8;
-            background-color: #1e293b;
-        }
-
         .fade-in {
             animation: fadeIn 0.4s ease-out forwards;
         }
@@ -43,14 +37,12 @@
             transition: width 0.4s ease-in-out;
         }
 
-        /* Prevent IMDB button from triggering movie selection */
-        .imdb-link {
+        .action-btn {
             transition: all 0.2s;
-            z-index: 50;
         }
-        .imdb-link:hover {
-            background-color: #f59e0b;
-            color: #000;
+        
+        .action-btn:hover {
+            transform: scale(1.02);
         }
     </style>
 </head>
@@ -82,7 +74,7 @@
         <!-- Voting Area -->
         <div id="voting-stage" class="stage-container space-y-8">
             <div id="matchup" class="fade-in">
-                <!-- Matchup buttons will be injected here -->
+                <!-- Matchup UI will be injected here -->
             </div>
         </div>
 
@@ -101,7 +93,6 @@
     </div>
 
     <script>
-        // Data expanded to include IMDB links from the Google Sheet
         const MOVIE_DATA = [
             { title: "Gone With The Wind", year: "1939", imdb: "https://www.imdb.com/title/tt0031381/" },
             { title: "Casablanca", year: "1942", imdb: "https://www.imdb.com/title/tt0034583/" },
@@ -211,32 +202,38 @@
 
             matchupDiv.innerHTML = `
                 <div class="flex flex-col gap-4">
-                    <div class="relative group">
-                        <button id="btn-choice-1" class="movie-card w-full p-6 pb-14 rounded-2xl border-2 border-slate-700 bg-slate-800/50 flex flex-col items-center justify-center text-center min-h-[160px]">
-                            <span class="font-extrabold text-xl">${movie1.title}</span>
-                            <span class="font-normal text-base text-slate-400 mt-1">${movie1.year}</span>
-                        </button>
-                        <a href="${movie1.imdb}" target="_blank" class="imdb-link absolute bottom-4 left-1/2 -translate-x-1/2 px-5 py-2 bg-slate-700 text-xs font-black rounded-lg text-slate-100 uppercase tracking-wide border border-slate-500 hover:border-amber-500 hover:bg-amber-600 hover:text-black shadow-lg">
-                            IMDB
-                        </a>
+                    <div class="movie-card w-full p-6 pb-14 rounded-2xl border-2 border-slate-700 bg-slate-800/50 flex flex-col items-center justify-center text-center min-h-[160px] relative">
+                        <span class="font-extrabold text-xl">${movie1.title}</span>
+                        <span class="font-normal text-base text-slate-400 mt-1">${movie1.year}</span>
+                        <div class="absolute bottom-4 left-0 right-0 flex justify-center gap-2 px-4">
+                            <a href="${movie1.imdb}" target="_blank" class="action-btn px-4 py-2 bg-slate-700 text-xs font-black rounded-lg text-slate-100 uppercase tracking-wide border border-slate-500 hover:border-amber-500 hover:bg-amber-600 hover:text-black">
+                                IMDB
+                            </a>
+                            <button id="btn-pick-1" class="action-btn px-4 py-2 bg-blue-600 text-xs font-black rounded-lg text-white uppercase tracking-wide border border-blue-500 hover:bg-blue-500">
+                                Pick this movie
+                            </button>
+                        </div>
                     </div>
 
-                    <div class="text-center text-slate-600 font-black italic tracking-widest py-1">VS</div>
+                    <div class="text-center text-slate-600 font-black italic tracking-widest py-1 uppercase text-sm">or</div>
 
-                    <div class="relative group">
-                        <button id="btn-choice-2" class="movie-card w-full p-6 pb-14 rounded-2xl border-2 border-slate-700 bg-slate-800/50 flex flex-col items-center justify-center text-center min-h-[160px]">
-                            <span class="font-extrabold text-xl">${movie2.title}</span>
-                            <span class="font-normal text-base text-slate-400 mt-1">${movie2.year}</span>
-                        </button>
-                        <a href="${movie2.imdb}" target="_blank" class="imdb-link absolute bottom-4 left-1/2 -translate-x-1/2 px-5 py-2 bg-slate-700 text-xs font-black rounded-lg text-slate-100 uppercase tracking-wide border border-slate-500 hover:border-amber-500 hover:bg-amber-600 hover:text-black shadow-lg">
-                            IMDB
-                        </a>
+                    <div class="movie-card w-full p-6 pb-14 rounded-2xl border-2 border-slate-700 bg-slate-800/50 flex flex-col items-center justify-center text-center min-h-[160px] relative">
+                        <span class="font-extrabold text-xl">${movie2.title}</span>
+                        <span class="font-normal text-base text-slate-400 mt-1">${movie2.year}</span>
+                        <div class="absolute bottom-4 left-0 right-0 flex justify-center gap-2 px-4">
+                            <a href="${movie2.imdb}" target="_blank" class="action-btn px-4 py-2 bg-slate-700 text-xs font-black rounded-lg text-slate-100 uppercase tracking-wide border border-slate-500 hover:border-amber-500 hover:bg-amber-600 hover:text-black">
+                                IMDB
+                            </a>
+                            <button id="btn-pick-2" class="action-btn px-4 py-2 bg-blue-600 text-xs font-black rounded-lg text-white uppercase tracking-wide border border-blue-500 hover:bg-blue-500">
+                                Pick this movie
+                            </button>
+                        </div>
                     </div>
                 </div>
             `;
 
-            document.getElementById('btn-choice-1').onclick = () => vote(movie1);
-            document.getElementById('btn-choice-2').onclick = () => vote(movie2);
+            document.getElementById('btn-pick-1').onclick = () => vote(movie1);
+            document.getElementById('btn-pick-2').onclick = () => vote(movie2);
             
             matchupDiv.classList.remove('fade-in');
             void matchupDiv.offsetWidth; 
