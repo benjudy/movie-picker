@@ -51,7 +51,7 @@
     <div id="app" class="max-w-2xl mx-auto">
         <header class="text-center mb-8">
             <h1 class="text-3xl md:text-4xl font-extrabold mb-2 bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent uppercase tracking-tight">
-                Pick a Movie
+                Movie Madness
             </h1>
             <div id="round-indicator" class="text-slate-400 font-bold uppercase tracking-widest text-sm">
                 Tournament Started
@@ -75,9 +75,9 @@
         <!-- Voting Area -->
         <div id="voting-stage" class="space-y-6">
             <div id="matchup" class="fade-in space-y-4">
-                <!-- Matchup UI will be injected here -->
+                <!-- Matchup UI injected here -->
             </div>
-            <!-- Random Pick Button -->
+            
             <div id="random-pick-container" class="flex justify-center pt-4">
                 <button id="btn-random-pick" class="action-btn bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white px-6 py-2.5 rounded-lg border border-slate-700 text-xs font-bold uppercase tracking-widest flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -98,7 +98,7 @@
                 </div>
                 <h2 class="text-3xl font-black text-white mb-3">Round Complete!</h2>
                 <p id="interstitial-msg" class="text-slate-400 max-w-sm mx-auto text-lg leading-relaxed">
-                    You've narrowed down the field. Ready for the next bracket?
+                    Ready for the next bracket?
                 </p>
             </div>
             <button id="btn-next-round" class="action-btn bg-emerald-600 hover:bg-emerald-500 text-white px-12 py-4 rounded-xl font-extrabold text-lg shadow-xl shadow-emerald-900/20 flex items-center gap-3 mx-auto">
@@ -111,12 +111,12 @@
 
         <!-- Winner View -->
         <div id="winner-view" class="hidden text-center fade-in py-8">
-            <div class="text-emerald-400 font-bold mb-6 uppercase tracking-[0.2em] text-xs">The Winner</div>
+            <div class="text-emerald-400 font-bold mb-6 uppercase tracking-[0.2em] text-xs">Tournament Champion</div>
             <div id="champion-container" class="mb-10">
-                <!-- Champion Card will be injected here -->
+                <!-- Champion Card injected here -->
             </div>
             <button onclick="initGame()" class="bg-blue-600 hover:bg-blue-500 text-white px-10 py-3 rounded-full font-bold transition-all shadow-lg shadow-blue-900/20">
-                Start over
+                Start New Tournament
             </button>
         </div>
     </div>
@@ -140,6 +140,8 @@
             { title: "The Firm", poster: "https://image.tmdb.org/t/p/w1280/kFexXCzidkm4LwlgZqxsJsDQB5v.jpg", year: "1993", imdb: "https://www.imdb.com/title/tt0106918/" },
             { title: "The Fugitive", poster: "https://image.tmdb.org/t/p/w1280/b3rEtLKyOnF89mcK75GXDXdmOEf.jpg", year: "1993", imdb: "https://www.imdb.com/title/tt0106977/" },
             { title: "The Pelican Brief", poster: "https://image.tmdb.org/t/p/w1280/7B1HS0SqfJR1jbeHS6V0ZWdzLXP.jpg", year: "1993", imdb: "https://www.imdb.com/title/tt0107798/" },
+            { title: "True Lies", poster: "https://image.tmdb.org/t/p/w1280/pweFTnzzTfGK68woSVkiTgjLzWm.jpg", year: "1994", imdb: "https://www.imdb.com/title/tt0111503/" },
+            { title: "Legends of the Fall", poster: "https://image.tmdb.org/t/p/w1280/t1KPGlW0UGd0m515LPQmk2F4nu1.jpg", year: "1994", imdb: "https://www.imdb.com/title/tt0110322/" },
             { title: "Apollo 13", poster: "https://image.tmdb.org/t/p/w1280/tVeKscCm2fY1xDXZk8PgnZ87h9S.jpg", year: "1995", imdb: "https://www.imdb.com/title/tt0112384/" },
             { title: "Braveheart", poster: "https://image.tmdb.org/t/p/w1280/or1gBugydmjToAEq7OZY0owwFk.jpg", year: "1995", imdb: "https://www.imdb.com/title/tt0112573/" },
             { title: "Tommy Boy", poster: "https://image.tmdb.org/t/p/w1280/jeEM8v1OA9u6F5NC2lzXD04Ls1U.jpg", year: "1995", imdb: "https://www.imdb.com/title/tt0114694/" },
@@ -234,7 +236,7 @@
                                 IMDb
                             </a>
                             <button id="btn-pick-${index}" class="action-btn px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg text-xs uppercase tracking-wider shadow-lg flex-grow">
-                                Pick This Movie
+                                Pick
                             </button>
                         </div>
                     </div>
@@ -255,6 +257,7 @@
 
             const totalMatchesInRound = Math.floor(roundSize / 2);
             
+            // Auto-advance if odd movie left out
             if (state.matchIndex >= totalMatchesInRound && roundSize % 2 !== 0) {
                 state.winnersOfRound.push(state.currentRound[roundSize - 1]);
                 advanceRound();
@@ -297,6 +300,7 @@
             state.matchIndex++;
 
             if (state.matchIndex >= Math.floor(state.currentRound.length / 2)) {
+                // Check if an odd movie needs to move forward automatically
                 if (state.currentRound.length % 2 !== 0) {
                     state.winnersOfRound.push(state.currentRound[state.currentRound.length - 1]);
                 }
@@ -326,9 +330,8 @@
             interstitial.classList.remove('hidden');
 
             const remainingMovies = state.winnersOfRound.length;
-            msg.innerText = `Round ${state.roundNumber} complete! You've narrowed it down to your favorite ${remainingMovies} movies.`;
+            msg.innerText = `Round ${state.roundNumber} complete! ${remainingMovies} movies remaining.`;
 
-            // Setup state for next round but wait for click
             state.currentRound = [...state.winnersOfRound];
             state.winnersOfRound = [];
             state.matchIndex = 0;
@@ -347,7 +350,7 @@
             document.getElementById('progress-container').classList.add('hidden'); 
             document.getElementById('round-interstitial').classList.add('hidden');
             document.getElementById('winner-view').classList.remove('hidden');
-            document.getElementById('round-indicator').innerText = "Tournament Complete";
+            document.getElementById('round-indicator').innerText = "Winner Found";
             
             document.getElementById('champion-container').innerHTML = `
                 <div class="bg-slate-800/50 rounded-2xl border-2 border-emerald-500/30 overflow-hidden flex flex-col items-center p-6 max-w-xs mx-auto shadow-2xl">
@@ -355,7 +358,7 @@
                          onerror="this.src='https://via.placeholder.com/300x450/1e293b/ffffff?text=?'">
                     <h2 class="text-2xl font-black text-white text-center leading-tight mb-2">${winnerObj.title}</h2>
                     <p class="text-slate-400 font-bold mb-6">${winnerObj.year}</p>
-                    <a href="${winnerObj.imdb}" target="_blank" class="action-btn px-8 py-3 bg-black border border-[#f5c518] text-[#f5c518] hover:bg-[#f5c518]/10 font-black rounded-lg text-sm uppercase tracking-wider shadow-lg">View on IMDb</a>
+                    <a href="${winnerObj.imdb}" target="_blank" class="action-btn px-8 py-3 bg-black border border-[#f5c518] text-[#f5c518] hover:bg-[#f5c518]/10 font-black rounded-lg text-sm uppercase tracking-wider shadow-lg">View IMDb Profile</a>
                 </div>
             `;
             
