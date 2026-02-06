@@ -79,6 +79,27 @@
             </div>
         </div>
 
+        <!-- Round Interstitial (Modified with Action Button) -->
+        <div id="round-interstitial" class="hidden text-center fade-in py-12">
+            <div class="mb-8">
+                <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-emerald-500/20 text-emerald-400 mb-6 border border-emerald-500/30">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+                <h2 class="text-3xl font-black text-white mb-3">Round Complete!</h2>
+                <p id="interstitial-msg" class="text-slate-400 max-w-sm mx-auto text-lg leading-relaxed">
+                    You've narrowed down the field. Ready for the next bracket?
+                </p>
+            </div>
+            <button id="btn-next-round" class="action-btn bg-emerald-600 hover:bg-emerald-500 text-white px-12 py-4 rounded-xl font-extrabold text-lg shadow-xl shadow-emerald-900/20 flex items-center gap-3 mx-auto">
+                Start Next Round
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+            </button>
+        </div>
+
         <!-- Winner View -->
         <div id="winner-view" class="hidden text-center fade-in py-8">
             <div class="text-emerald-400 font-bold mb-6 uppercase tracking-[0.2em] text-xs">The Winner</div>
@@ -86,7 +107,7 @@
                 <!-- Champion Card will be injected here -->
             </div>
             <button onclick="initGame()" class="bg-blue-600 hover:bg-blue-500 text-white px-10 py-3 rounded-full font-bold transition-all shadow-lg shadow-blue-900/20">
-                New Tournament
+                Start over
             </button>
         </div>
     </div>
@@ -182,6 +203,7 @@
             document.getElementById('winner-view').classList.add('hidden');
             document.getElementById('voting-stage').classList.remove('hidden');
             document.getElementById('progress-container').classList.remove('hidden');
+            document.getElementById('round-interstitial').classList.add('hidden');
             
             renderMatch();
         }
@@ -199,10 +221,10 @@
                             <p class="text-slate-400 font-medium text-sm mt-1">${movie.year}</p>
                         </div>
                         <div class="flex items-center gap-3 mt-auto">
-                            <a href="${movie.imdb}" target="_blank" class="action-btn px-3 py-2 bg-black border border-[#f5c518] text-[#f5c518] hover:bg-[#f5c518]/10 font-black rounded-lg text-[10px] uppercase tracking-wider shadow-lg text-center">
+                            <a href="${movie.imdb}" target="_blank" class="action-btn px-4 py-2 bg-black border border-[#f5c518] text-[#f5c518] hover:bg-[#f5c518]/10 font-black rounded-lg text-[10px] uppercase tracking-wider shadow-lg text-center">
                                 IMDb
                             </a>
-                            <button id="btn-pick-${index}" class="action-btn px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg text-[10px] md:text-xs uppercase tracking-wider shadow-lg">
+                            <button id="btn-pick-${index}" class="action-btn px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg text-xs uppercase tracking-wider shadow-lg flex-grow">
                                 Pick This Movie
                             </button>
                         </div>
@@ -273,17 +295,42 @@
             if (state.winnersOfRound.length === 1) {
                 showWinner(state.winnersOfRound[0]);
             } else {
-                state.currentRound = [...state.winnersOfRound];
-                state.winnersOfRound = [];
-                state.matchIndex = 0;
-                state.roundNumber++;
-                setTimeout(renderMatch, 300);
+                showRoundTransition();
             }
+        }
+
+        function showRoundTransition() {
+            const votingStage = document.getElementById('voting-stage');
+            const progressContainer = document.getElementById('progress-container');
+            const interstitial = document.getElementById('round-interstitial');
+            const msg = document.getElementById('interstitial-msg');
+            const nextBtn = document.getElementById('btn-next-round');
+
+            votingStage.classList.add('hidden');
+            progressContainer.classList.add('hidden');
+            interstitial.classList.remove('hidden');
+
+            const remainingMovies = state.winnersOfRound.length;
+            msg.innerText = `Round ${state.roundNumber} complete! You've narrowed it down to your favorite ${remainingMovies} movies.`;
+
+            // Setup state for next round but wait for click
+            state.currentRound = [...state.winnersOfRound];
+            state.winnersOfRound = [];
+            state.matchIndex = 0;
+            state.roundNumber++;
+
+            nextBtn.onclick = () => {
+                interstitial.classList.add('hidden');
+                votingStage.classList.remove('hidden');
+                progressContainer.classList.remove('hidden');
+                renderMatch();
+            };
         }
 
         function showWinner(winnerObj) {
             document.getElementById('voting-stage').classList.add('hidden');
-            document.getElementById('progress-container').classList.add('hidden'); // Hide progress and prompt
+            document.getElementById('progress-container').classList.add('hidden'); 
+            document.getElementById('round-interstitial').classList.add('hidden');
             document.getElementById('winner-view').classList.remove('hidden');
             document.getElementById('round-indicator').innerText = "Tournament Complete";
             
@@ -292,10 +339,8 @@
                     <img src="${winnerObj.poster}" class="w-48 h-auto rounded-lg shadow-xl mb-6 border border-slate-700" 
                          onerror="this.src='https://via.placeholder.com/300x450/1e293b/ffffff?text=?'">
                     <h2 class="text-2xl font-black text-white text-center leading-tight mb-2">${winnerObj.title}</h2>
-                    <p class="text-slate-400 font-bold mb-4">${winnerObj.year}</p>
-                    <div class="flex items-center gap-3">
-                        <a href="${winnerObj.imdb}" target="_blank" class="action-btn px-4 py-2 bg-black border border-[#f5c518] text-[#f5c518] hover:bg-[#f5c518]/10 font-black rounded-lg text-xs uppercase tracking-wider shadow-lg">IMDb</a>
-                    </div>
+                    <p class="text-slate-400 font-bold mb-6">${winnerObj.year}</p>
+                    <a href="${winnerObj.imdb}" target="_blank" class="action-btn px-8 py-3 bg-black border border-[#f5c518] text-[#f5c518] hover:bg-[#f5c518]/10 font-black rounded-lg text-sm uppercase tracking-wider shadow-lg">View on IMDb</a>
                 </div>
             `;
             
