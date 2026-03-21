@@ -49,7 +49,8 @@
         const { useState, useEffect } = React;
 
         const MOVIE_DATA = [
-            { title: "Preschool", poster: "https://image.tmdb.org/t/p/w1280/o6JYj1sZDdLgKb6GW39AfGfrGhw.jpg", year: "2026", imdb: "https://www.imdb.com/title/tt34890320/" },
+{ title: "Preschool", poster: "https://image.tmdb.org/t/p/w1280/o6JYj1sZDdLgKb6GW39AfGfrGhw.jpg", year: "2026", imdb: "https://www.imdb.com/title/tt34890320/" },
+{ title: "Train Dreams", poster: "https://www.themoviedb.org/movie/1241983-train-dreams", year: "2025", imdb: "https://www.imdb.com/title/tt29768334/" },
 { title: "Gone With The Wind", poster: "https://image.tmdb.org/t/p/w1280/lNz2Ow0wGCAvzckW7EOjE03KcYv.jpg", year: "1939", imdb: "https://www.imdb.com/title/tt0031381/" },
 { title: "Casablanca", poster: "https://image.tmdb.org/t/p/w1280/lGCEKlJo2CnWydQj7aamY7s1S7Q.jpg", year: "1942", imdb: "https://www.imdb.com/title/tt0034583/" },
 { title: "On the Town", poster: "https://image.tmdb.org/t/p/w1280/lEU8QQmIayAtPZrCDf2czQgTjQ1.jpg", year: "1949", imdb: "https://www.imdb.com/title/tt0041716/" },
@@ -84,7 +85,6 @@
 { title: "Air Force One", poster: "https://image.tmdb.org/t/p/w1280/evO1iENjLpUnbwjnt5XK85jRYob.jpg", year: "1997", imdb: "https://www.imdb.com/title/tt0118571/" },
 { title: "Con Air", poster: "https://image.tmdb.org/t/p/w1280/kOKjgrEzGOP92rVQ6srA9jtp60l.jpg", year: "1997", imdb: "https://www.imdb.com/title/tt0118880/" },
 { title: "Titanic", poster: "https://image.tmdb.org/t/p/w1280/5bTWA20cL9LCIGNpde4Epc2Ijzn.jpg", year: "1997", imdb: "https://www.imdb.com/title/tt0120338/" },
-{ title: "The Mask of Zorro", poster: "https://image.tmdb.org/t/p/w1280/bdMufwGDDzqu4kTSQwrKc5WR4bu.jpg", year: "1998", imdb: "https://www.imdb.com/title/tt0120746/" },
 { title: "Meet Joe Black", poster: "https://image.tmdb.org/t/p/w1280/fDPAjvfPMomkKF7cMRmL5Anak61.jpg", year: "1998", imdb: "https://www.imdb.com/title/tt0119643/" },
 { title: "A Perfect Murder", poster: "https://image.tmdb.org/t/p/w1280/wC0ax12N9GQ8vMXPEs4nES5AAiB.jpg", year: "1998", imdb: "https://www.imdb.com/title/tt0120787/" },
 { title: "Charlie's Angels", poster: "https://image.tmdb.org/t/p/w1280/iHTmZs0BmkwMCYi8rhvMWC5G4EM.jpg", year: "2000", imdb: "https://www.imdb.com/title/tt0160127/" },
@@ -112,8 +112,7 @@
 { title: "Keeping Up with the Joneses", poster: "https://image.tmdb.org/t/p/w1280/yvWcTrRCzE4C2hkd2wV4erPuKCn.jpg", year: "2016", imdb: "https://www.imdb.com/title/tt2387499/" },
 { title: "Passengers", poster: "https://image.tmdb.org/t/p/w1280/jK9S6HANSf2no64v1x1HxfcpmcA.jpg", year: "2016", imdb: "https://www.imdb.com/title/tt1355644/" },
 { title: "Ocean's Eight", poster: "https://image.tmdb.org/t/p/w1280/MvYpKlpFukTivnlBhizGbkAe3v.jpg", year: "2018", imdb: "https://www.imdb.com/title/tt5164214/" },
-{ title: "1917", poster: "https://image.tmdb.org/t/p/w1280/iZf0KyrE25z1sage4SYFLCCrMi9.jpg", year: "2019", imdb: "https://www.imdb.com/title/tt8579674/" },
-{ title: "The Lost City", poster: "https://image.tmdb.org/t/p/w1280/rnheO8cFvCYcmZsDrBoabJbKLFE.jpg", year: "2022", imdb: "https://www.imdb.com/title/tt13320622/" }
+{ title: "1917", poster: "https://image.tmdb.org/t/p/w1280/iZf0KyrE25z1sage4SYFLCCrMi9.jpg", year: "2019", imdb: "https://www.imdb.com/title/tt8579674/" }
         ];
 
         function App() {
